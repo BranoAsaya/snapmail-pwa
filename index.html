@@ -25,7 +25,6 @@
         }
         #camera-container { position: relative; width: 100%; height: 100%; }
         video { width: 100%; height: 100%; object-fit: cover; background: #000; display: block; }
-
         .top-bar {
             position: absolute; top: 0; left: 0; right: 0;
             padding: calc(var(--safe-area-inset-top) + 10px) 20px 10px;
@@ -35,14 +34,21 @@
         }
         .app-name { font-variant: small-caps; font-weight: 700; letter-spacing: 1px; font-size: 18px; }
         .top-actions { display: flex; gap: 24px; align-items: center; }
-
         .icon-btn {
             background: none; border: none; padding: 0; cursor: pointer;
             color: white; font-size: 24px; line-height: 1;
             display: flex; align-items: center; justify-content: center;
-            width: 36px; height: 36px;
+            width: 40px; height: 40px; border-radius: 50%;
+            transition: background 0.15s;
         }
-
+        .icon-btn:active { background: rgba(255,255,255,0.15); }
+        #send-btn { font-size: 22px; min-width: 44px; }
+        #send-btn.sending {
+            border: 2px solid rgba(255,255,255,0.4);
+            animation: pulse 1s ease-in-out infinite;
+            font-size: 13px; font-weight: 700;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         .bottom-bar {
             position: absolute; bottom: 0; left: 0; right: 0;
             padding: 20px 40px calc(var(--safe-area-inset-bottom) + 30px);
@@ -69,7 +75,6 @@
             background: white; transition: transform 0.1s;
         }
         .shutter-btn:active .shutter-inner { transform: scale(0.88); }
-
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 100;
@@ -82,7 +87,6 @@
             margin-bottom: 20px; flex-shrink: 0;
         }
         .overlay-title { font-size: 18px; font-weight: 600; }
-
         .gallery-grid {
             display: grid; grid-template-columns: repeat(3, 1fr);
             gap: 2px; overflow-y: auto; flex-grow: 1;
@@ -96,7 +100,6 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 15px; font-weight: bold; cursor: pointer;
         }
-
         .settings-form { display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         .form-group { display: flex; flex-direction: column; gap: 8px; }
         label { font-size: 12px; text-transform: uppercase; opacity: 0.6; letter-spacing: 0.5px; }
@@ -109,7 +112,6 @@
             padding: 15px; border-radius: 8px; font-weight: 600;
             font-size: 16px; cursor: pointer; width: 100%;
         }
-
         .dialog-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 200;
@@ -126,28 +128,12 @@
         .dialog-btns button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 16px; cursor: pointer; }
         .btn-cancel { background: #3a3a3c; color: white; }
         .btn-confirm { background: white; color: black; font-weight: 600; }
-
         #flash {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: white; opacity: 0; pointer-events: none; z-index: 99;
         }
         @keyframes flash-anim { 0%{opacity:0} 50%{opacity:1} 100%{opacity:0} }
         .do-flash { animation: flash-anim 120ms ease-out; }
-
-        #progress-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); z-index: 300;
-            display: none; flex-direction: column;
-            align-items: center; justify-content: center; gap: 16px;
-        }
-        #progress-text { font-size: 18px; font-weight: 500; text-align: center; padding: 0 20px; }
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2);
-            border-top-color: white; border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
         #error-card {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 400;
@@ -163,35 +149,31 @@
 
 <div id="camera-container">
     <video id="viewfinder" autoplay playsinline muted></video>
-
     <div class="top-bar">
         <div class="app-name">SnapMail</div>
         <div class="top-actions">
-            <button class="icon-btn" onclick="openSendDialog()" title="Send">📤</button>
+            <button id="send-btn" class="icon-btn" onclick="openSendDialog()" title="Send">📤</button>
             <button class="icon-btn" onclick="toggleOverlay('settings-overlay', true)" title="Settings">⚙️</button>
         </div>
     </div>
-
     <div class="bottom-bar">
         <div id="last-thumb" class="thumbnail-preview" onclick="openGallery()" title="Gallery">📷</div>
         <button class="shutter-btn" onclick="capturePhoto()" title="Capture">
             <div class="shutter-inner"></div>
         </button>
-        <button class="icon-btn" onclick="flipCamera()" title="Flip Camera" style="font-size:28px;">🔄</button>
+        <button class="icon-btn" onclick="flipCamera()" title="Flip" style="font-size:28px;">🔄</button>
     </div>
 </div>
 
 <div id="flash"></div>
 
-<!-- Camera Error -->
 <div id="error-card">
     <div style="font-size:56px;">📷</div>
     <h2 style="margin:0">Camera Access Required</h2>
-    <p>iOS Settings → Apps → Safari → Camera → <strong>Allow</strong><br>Then tap Retry.</p>
+    <p>Allow camera access in your browser settings,<br>then tap Retry.</p>
     <button class="btn-primary" style="max-width:200px" onclick="retryCamera()">🔄 Retry</button>
 </div>
 
-<!-- Gallery Overlay -->
 <div id="gallery-overlay" class="overlay">
     <div class="overlay-header">
         <div id="gallery-title" class="overlay-title">🖼️ Gallery</div>
@@ -200,7 +182,6 @@
     <div id="gallery-grid" class="gallery-grid"></div>
 </div>
 
-<!-- Settings Overlay -->
 <div id="settings-overlay" class="overlay">
     <div class="overlay-header">
         <div class="overlay-title">⚙️ Settings</div>
@@ -218,15 +199,10 @@
             <label>📁 Album / Subject Name</label>
             <input type="text" id="set-album" placeholder="My Snapshots">
         </div>
-        <div class="form-group">
-            <label>🔒 API Security Token</label>
-            <input type="password" id="set-token" placeholder="Paste your secret token">
-        </div>
         <button class="btn-primary" onclick="saveSettings()">✅ Save Settings</button>
     </div>
 </div>
 
-<!-- Send Dialog -->
 <div id="send-dialog" class="dialog-overlay">
     <div class="dialog-card">
         <h3>📤 Send Batch</h3>
@@ -238,26 +214,22 @@
     </div>
 </div>
 
-<!-- Progress -->
-<div id="progress-overlay">
-    <div class="spinner"></div>
-    <div id="progress-text">Sending...</div>
-</div>
-
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyNg56LULEBsuhKhwAYNNTCc5jr2FE50BsC955nxy6aHHeca5QSJtyiu7dgnuup2STh/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxgqzjDRquoBW442aNbXuMvaFyKq7mqSqYDzSYzn2LE-MtzJQk25B_MrX73VEN_D4Tr/exec";
     const SAFE_BATCH_BYTES = 18 * 1024 * 1024;
     let db, currentStream, currentFacingMode = "environment";
 
     async function initDB() {
         return new Promise((resolve, reject) => {
-            const r = indexedDB.open("snapmail_db", 1);
+            const r = indexedDB.open("snapmail_db", 2);
             r.onupgradeneeded = (e) => {
                 const d = e.target.result;
                 if (!d.objectStoreNames.contains("photos")) {
                     const s = d.createObjectStore("photos", { keyPath: "id" });
                     s.createIndex("timestamp", "timestamp");
                 }
+                if (!d.objectStoreNames.contains("send_queue"))
+                    d.createObjectStore("send_queue", { keyPath: "id" });
             };
             r.onsuccess = (e) => { db = e.target.result; resolve(); };
             r.onerror = reject;
@@ -273,15 +245,20 @@
 
     async function initCamera() {
         if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-        try {
-            currentStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentFacingMode, width: { ideal: 4096 }, height: { ideal: 4096 } }
-            });
-            document.getElementById('viewfinder').srcObject = currentStream;
-            document.getElementById('error-card').classList.remove('active');
-        } catch {
-            document.getElementById('error-card').classList.add('active');
+        const constraints = [
+            { video: { facingMode: currentFacingMode, width: { ideal: 4096 } } },
+            { video: { facingMode: currentFacingMode } },
+            { video: true }
+        ];
+        for (const c of constraints) {
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(c);
+                document.getElementById('viewfinder').srcObject = currentStream;
+                document.getElementById('error-card').classList.remove('active');
+                return;
+            } catch {}
         }
+        document.getElementById('error-card').classList.add('active');
     }
 
     function retryCamera() { document.getElementById('error-card').classList.remove('active'); initCamera(); }
@@ -289,15 +266,15 @@
 
     async function capturePhoto() {
         const video = document.getElementById('viewfinder');
+        if (!video.videoWidth) return;
         const canvas = document.createElement('canvas');
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
         canvas.toBlob(async (blob) => {
             if (!blob) return;
             const record = { id: crypto.randomUUID(), blob, sizeBytes: blob.size, timestamp: Date.now() };
             await new Promise((res, rej) => {
-                const tx  = db.transaction("photos", "readwrite");
+                const tx = db.transaction("photos", "readwrite");
                 const req = tx.objectStore("photos").add(record);
                 req.onsuccess = res; req.onerror = rej;
             });
@@ -313,22 +290,20 @@
     }
 
     async function openGallery() {
-        const tx     = db.transaction("photos", "readonly");
-        const photos = await dbReq(tx.objectStore("photos").index("timestamp").getAll());
-        const grid   = document.getElementById('gallery-grid');
+        const photos = await dbReq(db.transaction("photos","readonly").objectStore("photos").index("timestamp").getAll());
+        const grid = document.getElementById('gallery-grid');
         grid.innerHTML = '';
         let totalSize = 0;
         photos.forEach(p => {
             totalSize += p.sizeBytes;
-            const div    = document.createElement('div');
+            const div = document.createElement('div');
             div.className = 'gallery-item';
-            const img    = document.createElement('img');
+            const img = document.createElement('img');
             const objUrl = URL.createObjectURL(p.blob);
             img.src = objUrl;
             img.onload = () => URL.revokeObjectURL(objUrl);
             const del = document.createElement('div');
-            del.className   = 'delete-badge';
-            del.textContent = '×';
+            del.className = 'delete-badge'; del.textContent = '×';
             del.onclick = (e) => { e.stopPropagation(); deletePhoto(p.id); };
             div.appendChild(img); div.appendChild(del); grid.appendChild(div);
         });
@@ -339,8 +314,7 @@
 
     async function deletePhoto(id) {
         await new Promise((res, rej) => {
-            const tx  = db.transaction("photos", "readwrite");
-            const req = tx.objectStore("photos").delete(id);
+            const req = db.transaction("photos","readwrite").objectStore("photos").delete(id);
             req.onsuccess = res; req.onerror = rej;
         });
         openGallery();
@@ -358,10 +332,22 @@
         return batches;
     }
 
+    function updateSendBtn(state, current, total) {
+        const btn = document.getElementById('send-btn');
+        btn.disabled = false;
+        btn.classList.remove('sending');
+        if      (state === 'preparing') { btn.textContent = '⏳'; btn.disabled = true; }
+        else if (state === 'sending')   { btn.textContent = `${current}/${total}`; btn.classList.add('sending'); btn.disabled = true; }
+        else if (state === 'queued')    { btn.textContent = '📨'; }
+        else if (state === 'done')      { btn.textContent = '✅'; setTimeout(() => { btn.textContent = '📤'; }, 3000); }
+        else if (state === 'error')     { btn.textContent = '❌'; setTimeout(() => { btn.textContent = '📤'; }, 3000); }
+        else                            { btn.textContent = '📤'; }
+    }
+
     async function openSendDialog() {
         const photos = await dbReq(db.transaction("photos","readonly").objectStore("photos").getAll());
         if (!photos.length) { alert("No photos to send."); return; }
-        const batches   = buildBatches(photos);
+        const batches = buildBatches(photos);
         const totalSize = photos.reduce((a, p) => a + p.sizeBytes, 0);
         document.getElementById('send-stats').innerText =
             `${photos.length} photos  •  ${(totalSize/1024/1024).toFixed(2)} MB\nWill send in ${batches.length} email(s).`;
@@ -370,59 +356,81 @@
 
     async function processSend() {
         const settings = JSON.parse(localStorage.getItem('snapmail_settings') || '{}');
-        if (!settings.email || !settings.token) {
-            alert("Please configure Settings first.");
+        if (!settings.email) {
+            alert("Please configure your email in Settings first.");
             toggleOverlay('send-dialog', false);
             toggleOverlay('settings-overlay', true);
             return;
         }
         toggleOverlay('send-dialog', false);
-        const po = document.getElementById('progress-overlay');
-        const pt = document.getElementById('progress-text');
-        po.style.display = 'flex';
+        updateSendBtn('preparing');
+
         const photos  = await dbReq(db.transaction("photos","readonly").objectStore("photos").getAll());
         const batches = buildBatches(photos);
-        try {
-            for (let i = 0; i < batches.length; i++) {
-                pt.innerText = `📤 Sending batch ${i+1} of ${batches.length}…`;
-                const images = await Promise.all(batches[i].map(async (p) => {
-                    const b64 = await new Promise(res => {
-                        const r = new FileReader();
-                        r.onloadend = () => res(r.result.split(',')[1]);
-                        r.readAsDataURL(p.blob);
-                    });
-                    return { filename: `snap_${p.timestamp}.jpg`, data: b64 };
-                }));
-                await fetch(GAS_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    body: JSON.stringify({
-                        token: settings.token, email: settings.email,
-                        subject: `${settings.album || 'SnapMail'} — Part ${i+1} of ${batches.length}`,
-                        body: `Batch ${i+1}/${batches.length} · ${images.length} photos · SnapMail PWA`,
-                        images
-                    })
+
+        for (let i = 0; i < batches.length; i++) {
+            const images = await Promise.all(batches[i].map(async (p) => {
+                const b64 = await new Promise(res => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => res(reader.result.split(',')[1]);
+                    reader.readAsDataURL(p.blob);
                 });
-            }
+                return { filename: `snap_${p.timestamp}.jpg`, data: b64 };
+            }));
+            const payload = JSON.stringify({
+                email:   settings.email,
+                subject: `${settings.album || 'SnapMail'} — Part ${i+1} of ${batches.length}`,
+                body:    `Batch ${i+1}/${batches.length} · ${images.length} photos · SnapMail PWA`,
+                images
+            });
             await new Promise((res, rej) => {
-                const req = db.transaction("photos","readwrite").objectStore("photos").clear();
+                const req = db.transaction("send_queue","readwrite").objectStore("send_queue")
+                    .add({ id: crypto.randomUUID(), payload });
                 req.onsuccess = res; req.onerror = rej;
             });
-            const thumb = document.getElementById('last-thumb');
-            thumb.style.backgroundImage = 'none';
-            thumb.textContent = '📷';
-            alert(`✅ Sent ${photos.length} photos in ${batches.length} email(s).`);
-        } catch (err) {
-            alert(`❌ Error: ${err.message}\nPhotos NOT deleted. Please retry.`);
-        } finally { po.style.display = 'none'; }
+        }
+
+        await new Promise((res, rej) => {
+            const req = db.transaction("photos","readwrite").objectStore("photos").clear();
+            req.onsuccess = res; req.onerror = rej;
+        });
+        const thumb = document.getElementById('last-thumb');
+        thumb.style.backgroundImage = 'none';
+        thumb.textContent = '📷';
+
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                await reg.sync.register('send-photos');
+                updateSendBtn('queued');
+                return;
+            } catch {}
+        }
+
+        const items = await dbReq(db.transaction("send_queue","readonly").objectStore("send_queue").getAll());
+        for (let i = 0; i < items.length; i++) {
+            updateSendBtn('sending', i + 1, items.length);
+            try {
+                await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: items[i].payload });
+                await new Promise((res, rej) => {
+                    const req = db.transaction("send_queue","readwrite").objectStore("send_queue").delete(items[i].id);
+                    req.onsuccess = res; req.onerror = rej;
+                });
+            } catch (err) {
+                updateSendBtn('error');
+                alert(`❌ Batch ${i+1} failed: ${err.message}`);
+                return;
+            }
+        }
+        updateSendBtn('done');
     }
 
     function saveSettings() {
         const s = {
             email: document.getElementById('set-email').value.trim(),
-            album: document.getElementById('set-album').value.trim(),
-            token: document.getElementById('set-token').value.trim()
+            album: document.getElementById('set-album').value.trim()
         };
-        if (!s.email || !s.token) { alert("Email and Token are required."); return; }
+        if (!s.email) { alert("Email is required."); return; }
         localStorage.setItem('snapmail_settings', JSON.stringify(s));
         toggleOverlay('settings-overlay', false);
     }
@@ -442,9 +450,14 @@
             const s = JSON.parse(saved);
             document.getElementById('set-email').value = s.email || '';
             document.getElementById('set-album').value = s.album || '';
-            document.getElementById('set-token').value = s.token || '';
         }
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.addEventListener('message', (e) => {
+                if (e.data.type === 'SEND_COMPLETE') updateSendBtn('done');
+                if (e.data.type === 'SEND_ERROR')    updateSendBtn('error');
+            });
+        }
     });
 
     document.addEventListener('visibilitychange', () => {
